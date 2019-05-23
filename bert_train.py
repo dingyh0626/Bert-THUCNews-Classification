@@ -15,7 +15,7 @@ viz = visdom.Visdom()
 def create_vis_plot(_xlabel, _ylabel, _title, _legend):
     return viz.line(
         X=torch.zeros((1,)).cpu(),
-        Y=torch.zeros((1,)).cpu(),
+        Y=torch.zeros((1, 2)).cpu(),
         opts=dict(
             xlabel=_xlabel,
             ylabel=_ylabel,
@@ -25,18 +25,17 @@ def create_vis_plot(_xlabel, _ylabel, _title, _legend):
     )
 
 
-def update_vis_plot(loss, i, window):
+def update_vis_plot(loss, acc, i, window):
     viz.line(
-        X=torch.ones((1,)).cpu() * i,
-        Y=torch.Tensor([loss]).unsqueeze(0).cpu(),
+        X=torch.ones((1, 2)).cpu() * i,
+        Y=torch.Tensor([loss, acc]).unsqueeze(0).cpu(),
         win=window,
         update='replace' if i == 0 else 'append'
     )
 
 vis_title = 'BERT'
-vis_legend = ['Loss']
-iter_plot = create_vis_plot('Iteration', 'Loss', vis_title, vis_legend)
-epoch_plot = create_vis_plot('Epoch', 'Loss', vis_title, vis_legend)
+vis_legend = ['Loss', 'Accuracy']
+epoch_plot = create_vis_plot('Epoch', 'Loss&Accuracy', vis_title, vis_legend)
 
 
 parser = argparse.ArgumentParser(description='Text Classification By Nert')
@@ -59,7 +58,7 @@ if __name__ == '__main__':
     if args.resume:
         model.load_state_dict(torch.load(args.resume))
     # optimizer = optim.Adam(model.parameters())
-    optimizer = BertAdam(model.parameters(), lr=5e-4)
+    optimizer = BertAdam(model.parameters(), lr=5e-5)
     Loss = nn.CrossEntropyLoss()
     model.train()
     for epoch in range(args.start_epoch, args.max_epochs):
@@ -78,14 +77,14 @@ if __name__ == '__main__':
             losses.append(l)
             pred.append(logits)
             gt.append(y)
+            # acc = np.mean((logits.argmax(dim=1).cpu().numpy() == y.cpu().numpy()).astype(np.float32))
             if i % 10 == 0:
                 print('Epoch: %d, Iter: %d,  Loss: %f' % (epoch, i, l))
-            update_vis_plot(l, i, iter_plot)
 
         pred = torch.cat(pred, dim=0).argmax(dim=1).cpu().numpy()
         gt = torch.cat(gt, dim=0).cpu().numpy()
         print('Epoch: %d, Loss: %f, Acc: %f' % (epoch, np.mean(losses), np.mean((pred == gt).astype(np.float32))))
-        update_vis_plot(np.mean(losses), epoch, epoch_plot)
+        update_vis_plot(np.mean(losses), np.mean((pred == gt).astype(np.float32)), epoch, epoch_plot)
         # with open(os.path.join(args.save_folder, 'model.pkl'), 'wb') as f:
         #     torch.save(model.state_dict(), f)
-        torch.save(model.state_dict(), os.path.join(args.save_folder, 'model.pkl'))
+    torch.save(model.state_dict(), os.path.join(args.save_folder, 'model.pkl'))
