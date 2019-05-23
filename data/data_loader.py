@@ -7,7 +7,6 @@ import numpy as np
 from tqdm import tqdm
 from config import DATA_ROOT as ROOT, PROJECT_ROOT as PROOT, MAX_LEN
 from .tokenize import pad_sequences
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 
 def __read():
@@ -20,14 +19,16 @@ def __read():
 
 
 def extract_feature(raw_texts):
-    if os.path.exists(os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin')):
-        bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
-    else:
-        bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12'), from_tf=True)
-        torch.save(bert_model.state_dict(), os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin'))
-        bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
-
-    tokenizer = BertTokenizer.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12/vocab.txt'))
+    # if os.path.exists(os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin')):
+    #     bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
+    # else:
+    #     bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12'), from_tf=True)
+    #     torch.save(bert_model.state_dict(), os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin'))
+    #     bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
+    bert_model = BertModel.from_pretrained('bert-base-chinese').cuda()
+    tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
+    tokenizer.max_len = 20000
+    # tokenizer = BertTokenizer.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12/vocab.txt'))
     bert_model.eval()
     if type(raw_texts) is not list:
         raw_texts = [raw_texts]
@@ -61,12 +62,13 @@ def __extract_feature(train=True, force_new=False):
         x = torch.LongTensor(x)
         y = torch.LongTensor(y)
         temp = dataset.TensorDataset(x, y, mask, trainval)
-        if os.path.exists(os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin')):
-            bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
-        else:
-            bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12'), from_tf=True)
-            torch.save(bert_model.state_dict(), os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin'))
-            bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
+        # if os.path.exists(os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin')):
+        #     bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
+        # else:
+        #     bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12'), from_tf=True)
+        #     torch.save(bert_model.state_dict(), os.path.join(PROOT, 'chinese_L-12_H-768_A-12', 'pytorch_model.bin'))
+        #     bert_model = BertModel.from_pretrained(os.path.join(PROOT, 'chinese_L-12_H-768_A-12')).cuda()
+        bert_model = BertModel.from_pretrained('bert-base-chinese').cuda()
         bert_model = torch.nn.DataParallel(bert_model)
         bert_model.eval()
         Xs = []

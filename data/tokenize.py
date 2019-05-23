@@ -1,9 +1,13 @@
 import pandas as pd
 from pytorch_pretrained_bert import BertTokenizer
-from config import DATA_ROOT as ROOT, MAX_LEN, PROJECT_ROOT as project_root
+from config import DATA_ROOT as ROOT, MAX_LEN
 import numpy as np
 from tqdm import tqdm
 import os
+
+
+
+
 
 
 def pad_sequences(seqs, length):
@@ -29,7 +33,8 @@ def parse(df, tokenizer):
 
 
 if __name__ == '__main__':
-    tokenizer = BertTokenizer.from_pretrained(os.path.join(project_root, 'chinese_L-12_H-768_A-12/vocab.txt'))
+    tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
+    tokenizer.max_len = 20000
     df = pd.read_csv(os.path.join(ROOT, 'tmp', 'split.csv'))
     texts = []
     masks = []
