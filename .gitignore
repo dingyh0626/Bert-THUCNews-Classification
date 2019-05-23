@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+.DS_Store
+*/.DS_Store
+./chinese_L-12_H-768_A-12
