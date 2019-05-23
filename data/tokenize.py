@@ -34,7 +34,9 @@ def parse(df, tokenizer):
 
 if __name__ == '__main__':
     tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
-    tokenizer.max_len = 20000
+    # to prevent the warning log
+    # the exact max length is 400
+    tokenizer.max_len = 200000
     df = pd.read_csv(os.path.join(ROOT, 'tmp', 'split.csv'))
     texts = []
     masks = []
